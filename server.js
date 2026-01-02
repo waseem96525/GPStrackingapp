@@ -15,11 +15,18 @@ const io = socketIo(server, {
 });
 
 const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
+
+// Add error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal server error', message: err.message });
+});
 
 // Database setup
 const db = new sqlite3.Database('./gps_tracking.db', (err) => {

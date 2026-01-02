@@ -300,6 +300,93 @@
         .delete-btn:hover {
             background: #dc2626;
         }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 40vh;
+            }
+
+            .vehicle-details {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 15px;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.2em;
+            }
+
+            .status {
+                font-size: 0.8em;
+                gap: 10px;
+            }
+
+            .sidebar {
+                max-height: 35vh;
+            }
+
+            .sidebar-header h2 {
+                font-size: 1.1em;
+            }
+
+            .add-vehicle-btn {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+
+            .vehicle-item {
+                padding: 12px 15px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1em;
+            }
+
+            .status {
+                font-size: 0.75em;
+            }
+
+            .sidebar {
+                max-height: 30vh;
+            }
+
+            .vehicle-details {
+                padding: 15px;
+                font-size: 0.9em;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
     </style>
 </head>
 <body>

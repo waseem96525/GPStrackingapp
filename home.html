@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Vehicle Tracking System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            color: white;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .card-icon {
+            font-size: 3em;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .card-desc {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .status {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #16a34a;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .features {
+            margin-top: 40px;
+            text-align: left;
+        }
+
+        .features h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .feature-item {
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .subtitle {
+                font-size: 0.9em;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .card-icon {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 GPS Vehicle Tracking System</h1>
+        <p class="subtitle">Real-time vehicle tracking made simple</p>
+
+        <div class="status">
+            <div class="status-dot"></div>
+            <span>Server is running</span>
+        </div>
+
+        <div class="cards">
+            <a href="/dashboard.html" class="card">
+                <div class="card-icon">🗺️</div>
+                <div class="card-title">Dashboard</div>
+                <div class="card-desc">View all vehicles on interactive map</div>
+            </a>
+
+            <a href="/mobile.html" class="card">
+                <div class="card-icon">📱</div>
+                <div class="card-title">Mobile Tracker</div>
+                <div class="card-desc">Track with your phone's GPS</div>
+            </a>
+        </div>
+
+        <div class="features">
+            <h2>✨ Features</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    ✅ Real-time tracking
+                </div>
+                <div class="feature-item">
+                    ✅ Multiple vehicles
+                </div>
+                <div class="feature-item">
+                    ✅ Speed monitoring
+                </div>
+                <div class="feature-item">
+                    ✅ Battery tracking
+                </div>
+                <div class="feature-item">
+                    ✅ Location history
+                </div>
+                <div class="feature-item">
+                    ✅ Responsive design
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if server is running
+        fetch('/api/health')
+            .then(res => res.json())
+            .then(data => {
+                console.log('✅ Server connected:', data);
+            })
+            .catch(err => {
+                console.error('❌ Server error:', err);
+                document.querySelector('.status').innerHTML = '<div class="status-dot" style="background: #dc2626;"></div><span>Server error - please check console</span>';
+                document.querySelector('.status').style.background = '#fee2e2';
+                document.querySelector('.status').style.color = '#991b1b';
+            });
+    </script>
+</body>
+</html>

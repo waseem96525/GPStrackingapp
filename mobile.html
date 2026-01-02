@@ -103,10 +103,12 @@
             cursor: pointer;
             transition: transform 0.2s, opacity 0.2s;
             margin-bottom: 10px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .btn:active {
-            transform: scale(0.98);
+            transform: scale(0.95);
         }
 
         .btn:disabled {
@@ -191,6 +193,66 @@
 
         .hidden {
             display: none;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.3em;
+            }
+
+            .form-group label {
+                font-size: 0.9em;
+            }
+
+            .form-group input {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+
+            .btn {
+                padding: 15px;
+                font-size: 1em;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .info-value {
+                font-size: 1.5em;
+            }
+
+            .log {
+                font-size: 0.75em;
+                max-height: 150px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .card {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.1em;
+            }
+
+            .info-grid {
+                gap: 8px;
+            }
+
+            .info-item {
+                padding: 12px;
+            }
         }
     </style>
 </head>
