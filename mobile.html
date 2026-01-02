@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Tracker - Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc2626;
+        }
+
+        .status-dot.active {
+            background: #16a34a;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            margin-bottom: 10px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .log {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.3em;
+            }
+
+            .form-group label {
+                font-size: 0.9em;
+            }
+
+            .form-group input {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+
+            .btn {
+                padding: 15px;
+                font-size: 1em;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .info-value {
+                font-size: 1.5em;
+            }
+
+            .log {
+                font-size: 0.75em;
+                max-height: 150px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .card {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.1em;
+            }
+
+            .info-grid {
+                gap: 8px;
+            }
+
+            .info-item {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📍 GPS Tracker</h1>
+            
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Not Tracking</span>
+            </div>
+
+            <div id="setup-form">
+                <div class="alert alert-info">
+                    Enter your Device ID to start tracking
+                </div>
+
+                <div class="form-group">
+                    <label for="device-id">Device ID</label>
+                    <input type="text" id="device-id" placeholder="e.g., DEVICE001" />
+                </div>
+
+                <div class="form-group">
+                    <label for="server-url">Server URL</label>
+                    <input type="text" id="server-url" value="http://localhost:3000" placeholder="http://your-server.com" />
+                </div>
+
+                <div class="form-group">
+                    <label for="update-interval">Update Interval (seconds)</label>
+                    <input type="number" id="update-interval" value="5" min="1" max="60" />
+                </div>
+
+                <button class="btn btn-primary" onclick="startTracking()">
+                    🚀 Start Tracking
+                </button>
+            </div>
+
+            <div id="tracking-info" class="hidden">
+                <div class="alert alert-success">
+                    Tracking Active
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Updates Sent</div>
+                        <div class="info-value" id="update-count">0</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Speed</div>
+                        <div class="info-value" id="speed">0 km/h</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Battery</div>
+                        <div class="info-value" id="battery">100%</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Accuracy</div>
+                        <div class="info-value" id="accuracy">- m</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-danger" onclick="stopTracking()">
+                    ⏹️ Stop Tracking
+                </button>
+
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let trackingInterval = null;
+        let watchId = null;
+        let updateCount = 0;
+        let deviceId = null;
+        let serverUrl = null;
+        let lastPosition = null;
+        let previousCoords = null;
+
+        // Add log entry
+        function addLog(message) {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 20 entries
+            while (log.children.length > 20) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // Calculate speed between two positions
+        function calculateSpeed(lat1, lon1, lat2, lon2, timeDiff) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c; // Distance in km
+            const speed = (distance / timeDiff) * 3600; // Speed in km/h
+            return speed;
+        }
+
+        // Get battery level
+        async function getBatteryLevel() {
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    return Math.round(battery.level * 100);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        // Send location to server
+        async function sendLocation(position) {
+            const { latitude, longitude, accuracy, altitude, heading, speed } = position.coords;
+            
+            // Calculate speed if not provided
+            let calculatedSpeed = speed;
+            if (previousCoords && position.timestamp && lastPosition?.timestamp) {
+                const timeDiff = (position.timestamp - lastPosition.timestamp) / 1000 / 3600; // in hours
+                calculatedSpeed = calculateSpeed(
+                    previousCoords.latitude,
+                    previousCoords.longitude,
+                    latitude,
+                    longitude,
+                    timeDiff
+                );
+            }
+
+            const batteryLevel = await getBatteryLevel();
+
+            const data = {
+                device_id: deviceId,
+                latitude,
+                longitude,
+                speed: calculatedSpeed ? calculatedSpeed * 3.6 : 0, // Convert m/s to km/h
+                accuracy,
+                altitude,
+                heading,
+                battery_level: batteryLevel
+            };
+
+            try {
+                const response = await fetch(`${serverUrl}/api/location`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    updateCount++;
+                    document.getElementById('update-count').textContent = updateCount;
+                    document.getElementById('speed').textContent = `${data.speed.toFixed(1)} km/h`;
+                    document.getElementById('accuracy').textContent = `${accuracy.toFixed(0)} m`;
+                    if (batteryLevel !== null) {
+                        document.getElementById('battery').textContent = `${batteryLevel}%`;
+                    }
+                    addLog(`✓ Location sent: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+                    
+                    previousCoords = { latitude, longitude };
+                    lastPosition = position;
+                } else {
+                    const error = await response.json();
+                    addLog(`✗ Error: ${error.error}`);
+                }
+            } catch (error) {
+                addLog(`✗ Network error: ${error.message}`);
+            }
+        }
+
+        // Start tracking
+        function startTracking() {
+            deviceId = document.getElementById('device-id').value.trim();
+            serverUrl = document.getElementById('server-url').value.trim();
+            const intervalSeconds = parseInt(document.getElementById('update-interval').value);
+
+            if (!deviceId) {
+                alert('Please enter a Device ID');
+                return;
+            }
+
+            if (!serverUrl) {
+                alert('Please enter a Server URL');
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your device');
+                return;
+            }
+
+            // Request location permission and start tracking
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // Success - start continuous tracking
+                    document.getElementById('setup-form').classList.add('hidden');
+                    document.getElementById('tracking-info').classList.remove('hidden');
+                    document.getElementById('status-dot').classList.add('active');
+                    document.getElementById('status-text').textContent = 'Tracking Active';
+
+                    addLog('🚀 Tracking started');
+                    addLog(`Device ID: ${deviceId}`);
+                    
+                    // Send initial location
+                    sendLocation(position);
+
+                    // Set up continuous tracking
+                    trackingInterval = setInterval(() => {
+                        navigator.geolocation.getCurrentPosition(
+                            sendLocation,
+                            (error) => {
+                                addLog(`✗ GPS Error: ${error.message}`);
+                            },
+                            {
+                                enableHighAccuracy: true,
+                                timeout: 10000,
+                                maximumAge: 0
+                            }
+                        );
+                    }, intervalSeconds * 1000);
+
+                    // Prevent screen from sleeping (if supported)
+                    if ('wakeLock' in navigator) {
+                        navigator.wakeLock.request('screen').catch(err => {
+                            addLog('⚠ Wake lock not available');
+                        });
+                    }
+                },
+                (error) => {
+                    alert(`GPS Error: ${error.message}. Please enable location services.`);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Stop tracking
+        function stopTracking() {
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+                trackingInterval = null;
+            }
+
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+
+            document.getElementById('setup-form').classList.remove('hidden');
+            document.getElementById('tracking-info').classList.add('hidden');
+            document.getElementById('status-dot').classList.remove('active');
+            document.getElementById('status-text').textContent = 'Not Tracking';
+
+            updateCount = 0;
+            previousCoords = null;
+            lastPosition = null;
+            addLog('⏹️ Tracking stopped');
+        }
+
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                addLog('📱 App in background');
+            } else {
+                addLog('📱 App in foreground');
+            }
+        });
+
+        // Warn before leaving page while tracking
+        window.addEventListener('beforeunload', (e) => {
+            if (trackingInterval) {
+                e.preventDefault();
+                e.returnValue = 'Tracking is active. Are you sure you want to leave?';
+            }
+        });
+    </script>
+</body>
+</html>

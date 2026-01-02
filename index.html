@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle GPS Tracking System Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            font-size: 2em;
+        }
+
+        .architecture {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .component {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .component h2 {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+
+        .component p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .arrow {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid #667eea;
+            position: relative;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .connection-label {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.9em;
+            padding: 5px 15px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin: -10px 0;
+        }
+
+        .device {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .backend {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .database {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .dashboard {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .component {
+                padding: 20px 30px;
+            }
+
+            .component h2 {
+                font-size: 1.2em;
+            }
+        }
+
+        .info-panel {
+            margin-top: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .info-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info-panel h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-panel ul {
+            list-style-position: inside;
+            color: #555;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Vehicle GPS Tracking System</h1>
+        
+        <div class="architecture">
+            <div class="component device" onclick="showInfo('device')">
+                <h2>📱 Vehicle GPS Device / Mobile App</h2>
+                <p>Real-time location tracking</p>
+            </div>
+
+            <div class="arrow"></div>
+            <div class="connection-label">GPS + SIM / Internet</div>
+            <div class="arrow"></div>
+
+            <div class="component backend" onclick="showInfo('backend')">
+                <h2>🖥️ Backend Server (API)</h2>
+                <p>Data processing & management</p>
+            </div>
+
+            <div class="arrow"></div>
+
+            <div class="component database" onclick="showInfo('database')">
+                <h2>💾 Database</h2>
+                <p>Secure data storage</p>
+            </div>
+
+            <div class="arrow"></div>
+
+            <div class="component dashboard" onclick="showInfo('dashboard')">
+                <h2>📊 Web Dashboard + Mobile App</h2>
+                <p>User interface & monitoring</p>
+            </div>
+        </div>
+
+        <div id="info-device" class="info-panel">
+            <h3>Vehicle GPS Device / Mobile App</h3>
+            <p style="color: #666; margin-bottom: 15px;"><strong>Choose your implementation:</strong></p>
+            
+            <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f5576c;">
+                <h4 style="color: #f5576c; margin-bottom: 8px;">Option 1️⃣ – Dedicated GPS Device</h4>
+                <ul>
+                    <li>Professional hardware GPS tracker</li>
+                    <li>Built-in SIM card for cellular connectivity</li>
+                    <li>Sends location data at regular intervals</li>
+                    <li>Can include sensors for speed, fuel, ignition, etc.</li>
+                    <li>Best for commercial/fleet use</li>
+                </ul>
+            </div>
+
+            <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #43e97b;">
+                <h4 style="color: #43e97b; margin-bottom: 8px;">Option 2️⃣ – Mobile Phone as GPS (Low Cost)</h4>
+                <ul>
+                    <li>Android app installed in vehicle</li>
+                    <li>Uses phone's built-in GPS + internet</li>
+                    <li>Good for testing or personal use</li>
+                    <li>Cost-effective solution</li>
+                    <li>Flexible and easy to setup</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="info-backend" class="info-panel">
+            <h3>Backend Server (API)</h3>
+            <ul>
+                <li>Receives and processes GPS data from devices</li>
+                <li>Provides RESTful API endpoints</li>
+                <li>Handles authentication and authorization</li>
+                <li>Manages real-time data streaming</li>
+                <li>Implements business logic and alerts</li>
+            </ul>
+        </div>
+
+        <div id="info-database" class="info-panel">
+            <h3>Database</h3>
+            <ul>
+                <li>Stores historical location data</li>
+                <li>Maintains vehicle information</li>
+                <li>Tracks user accounts and permissions</li>
+                <li>Logs system events and alerts</li>
+                <li>Supports queries for reports and analytics</li>
+            </ul>
+        </div>
+
+        <div id="info-dashboard" class="info-panel">
+            <h3>Web Dashboard + Mobile App</h3>
+            <ul>
+                <li>Displays real-time vehicle locations on map</li>
+                <li>Shows route history and playback</li>
+                <li>Provides analytics and reports</li>
+                <li>Sends alerts and notifications</li>
+                <li>Manages fleet and user settings</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let currentActivePanel = null;
+
+        function showInfo(type) {
+            const panel = document.getElementById('info-' + type);
+            
+            // If clicking the same component, toggle it
+            if (currentActivePanel === panel) {
+                panel.classList.remove('active');
+                currentActivePanel = null;
+                return;
+            }
+
+            // Hide current active panel
+            if (currentActivePanel) {
+                currentActivePanel.classList.remove('active');
+            }
+
+            // Show new panel
+            panel.classList.add('active');
+            currentActivePanel = panel;
+
+            // Smooth scroll to panel
+            setTimeout(() => {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+    </script>
+</body>
+</html>
