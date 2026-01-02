@@ -1,406 +1,548 @@
-# 🚗 Real-Time GPS Vehicle Tracking System
+# ws: a Node.js WebSocket library
 
-A complete GPS tracking system with real-time location updates, web dashboard, and mobile tracking app.
+[![Version npm](https://img.shields.io/npm/v/ws.svg?logo=npm)](https://www.npmjs.com/package/ws)
+[![CI](https://img.shields.io/github/actions/workflow/status/websockets/ws/ci.yml?branch=master&label=CI&logo=github)](https://github.com/websockets/ws/actions?query=workflow%3ACI+branch%3Amaster)
+[![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg?logo=coveralls)](https://coveralls.io/github/websockets/ws)
 
-## 📋 Features
+ws is a simple to use, blazing fast, and thoroughly tested WebSocket client and
+server implementation.
 
-- ✅ Real-time GPS tracking with WebSocket updates
-- ✅ Interactive map dashboard with vehicle markers
-- ✅ Mobile app for phone-based tracking (Android/iPhone)
-- ✅ SQLite database for location history
-- ✅ RESTful API for all operations
-- ✅ Vehicle registration and management
-- ✅ Speed, battery, and location accuracy tracking
-- ✅ Auto-calculated speed when not provided by GPS
-- ✅ Responsive design for all devices
+Passes the quite extensive Autobahn test suite: [server][server-report],
+[client][client-report].
 
-## 🚀 Quick Start
+**Note**: This module does not work in the browser. The client in the docs is a
+reference to a backend with the role of a client in the WebSocket communication.
+Browser clients must use the native
+[`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
+object. To make the same code work seamlessly on Node.js and the browser, you
+can use one of the many wrappers available on npm, like
+[isomorphic-ws](https://github.com/heineiuo/isomorphic-ws).
 
-### 1. Install Dependencies
+## Table of Contents
 
-```bash
-npm install
+- [Protocol support](#protocol-support)
+- [Installing](#installing)
+  - [Opt-in for performance](#opt-in-for-performance)
+    - [Legacy opt-in for performance](#legacy-opt-in-for-performance)
+- [API docs](#api-docs)
+- [WebSocket compression](#websocket-compression)
+- [Usage examples](#usage-examples)
+  - [Sending and receiving text data](#sending-and-receiving-text-data)
+  - [Sending binary data](#sending-binary-data)
+  - [Simple server](#simple-server)
+  - [External HTTP/S server](#external-https-server)
+  - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+  - [Client authentication](#client-authentication)
+  - [Server broadcast](#server-broadcast)
+  - [Round-trip time](#round-trip-time)
+  - [Use the Node.js streams API](#use-the-nodejs-streams-api)
+  - [Other examples](#other-examples)
+- [FAQ](#faq)
+  - [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
+  - [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
+  - [How to connect via a proxy?](#how-to-connect-via-a-proxy)
+- [Changelog](#changelog)
+- [License](#license)
+
+## Protocol support
+
+- **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
+- **HyBi drafts 13-17** (Current default, alternatively option
+  `protocolVersion: 13`)
+
+## Installing
+
+```
+npm install ws
 ```
 
-This will install:
-- `express` - Web server
-- `cors` - Cross-origin support
-- `sqlite3` - Database
-- `socket.io` - Real-time WebSocket communication
+### Opt-in for performance
 
-### 2. Start the Server
+[bufferutil][] is an optional module that can be installed alongside the ws
+module:
 
-```bash
-npm start
+```
+npm install --save-optional bufferutil
 ```
 
-The server will start on `http://localhost:3000`
+This is a binary addon that improves the performance of certain operations such
+as masking and unmasking the data payload of the WebSocket frames. Prebuilt
+binaries are available for the most popular platforms, so you don't necessarily
+need to have a C++ compiler installed on your machine.
 
-You should see:
+To force ws to not use bufferutil, use the
+[`WS_NO_BUFFER_UTIL`](./doc/ws.md#ws_no_buffer_util) environment variable. This
+can be useful to enhance security in systems where a user can put a package in
+the package search path of an application of another user, due to how the
+Node.js resolver algorithm works.
+
+#### Legacy opt-in for performance
+
+If you are running on an old version of Node.js (prior to v18.14.0), ws also
+supports the [utf-8-validate][] module:
+
 ```
-╔════════════════════════════════════════╗
-║   🚗 GPS Tracking Server Running      ║
-╚════════════════════════════════════════╝
-📡 Server: http://localhost:3000
-🗺️  Dashboard: http://localhost:3000/dashboard.html
-📱 Mobile App: http://localhost:3000/mobile.html
-🔌 WebSocket: ws://localhost:3000
-```
-
-### 3. Open the Dashboard
-
-Open your browser and go to:
-```
-http://localhost:3000/dashboard.html
-```
-
-### 4. Register a Vehicle
-
-1. Click "Add New Vehicle" in the dashboard
-2. Enter a Device ID (e.g., `DEVICE001`)
-3. Enter a vehicle name (e.g., `Company Van #1`)
-4. Click "Register Vehicle"
-
-### 5. Start Tracking
-
-**Option A: Using Your Phone (Recommended)**
-
-1. Open on your phone: `http://localhost:3000/mobile.html`
-   - If testing locally, use your computer's IP address instead of localhost
-   - Example: `http://192.168.1.100:3000/mobile.html`
-2. Enter the same Device ID you registered
-3. Enter the server URL (use your computer's IP)
-4. Click "Start Tracking"
-5. Allow location permissions when prompted
-6. Watch the dashboard update in real-time!
-
-**Option B: Testing with Postman/curl**
-
-Send location updates via API:
-
-```bash
-curl -X POST http://localhost:3000/api/location \
-  -H "Content-Type: application/json" \
-  -d '{
-    "device_id": "DEVICE001",
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "speed": 45.5,
-    "accuracy": 10,
-    "battery_level": 85
-  }'
+npm install --save-optional utf-8-validate
 ```
 
-## 📱 Using the Mobile App
+This contains a binary polyfill for [`buffer.isUtf8()`][].
 
-### Setup Instructions:
+To force ws not to use utf-8-validate, use the
+[`WS_NO_UTF_8_VALIDATE`](./doc/ws.md#ws_no_utf_8_validate) environment variable.
 
-1. **Get Your Computer's IP Address:**
-   - Windows: Run `ipconfig` in Command Prompt
-   - Mac/Linux: Run `ifconfig` or `ip addr`
-   - Look for your local IP (e.g., `192.168.1.100`)
+## API docs
 
-2. **Access Mobile App:**
-   - On your phone's browser, go to: `http://YOUR_IP:3000/mobile.html`
-   - Example: `http://192.168.1.100:3000/mobile.html`
+See [`/doc/ws.md`](./doc/ws.md) for Node.js-like documentation of ws classes and
+utility functions.
 
-3. **Configure Tracking:**
-   - Device ID: Use the ID you registered in dashboard
-   - Server URL: `http://YOUR_IP:3000`
-   - Update Interval: 5 seconds (recommended)
+## WebSocket compression
 
-4. **Start Tracking:**
-   - Click "Start Tracking"
-   - Grant location permissions
-   - Keep the browser open (don't close or switch apps too much)
+ws supports the [permessage-deflate extension][permessage-deflate] which enables
+the client and server to negotiate a compression algorithm and its parameters,
+and then selectively apply it to the data payloads of each WebSocket message.
 
-### Tips for Best Performance:
+The extension is disabled by default on the server and enabled by default on the
+client. It adds a significant overhead in terms of performance and memory
+consumption so we suggest to enable it only if it is really needed.
 
-- Keep the phone charged or plugged in
-- Keep the mobile browser tab active
-- Use a phone mount in the vehicle
-- Ensure stable internet connection (mobile data or WiFi)
-- For Android, consider using Chrome in "Add to Home Screen" mode
+Note that Node.js has a variety of issues with high-performance compression,
+where increased concurrency, especially on Linux, can lead to [catastrophic
+memory fragmentation][node-zlib-bug] and slow performance. If you intend to use
+permessage-deflate in production, it is worthwhile to set up a test
+representative of your workload and ensure Node.js/zlib will handle it with
+acceptable performance and memory usage.
 
-## 🖥️ Dashboard Features
+Tuning of permessage-deflate can be done via the options defined below. You can
+also use `zlibDeflateOptions` and `zlibInflateOptions`, which is passed directly
+into the creation of [raw deflate/inflate streams][node-zlib-deflaterawdocs].
 
-### Vehicle List
-- View all registered vehicles
-- See online/offline status (green = active in last 5 minutes)
-- Click any vehicle to view details and center map
+See [the docs][ws-server-options] for more options.
 
-### Map View
-- Real-time vehicle locations with markers
-- Click markers for quick info popup
-- Auto-centers on first vehicle
+```js
+import WebSocket, { WebSocketServer } from 'ws';
 
-### Vehicle Details Panel
-- Current speed
-- Battery level
-- Last update time
-- GPS coordinates
-- Delete vehicle option
-
-## 🔌 API Documentation
-
-### Base URL
+const wss = new WebSocketServer({
+  port: 8080,
+  perMessageDeflate: {
+    zlibDeflateOptions: {
+      // See zlib defaults.
+      chunkSize: 1024,
+      memLevel: 7,
+      level: 3
+    },
+    zlibInflateOptions: {
+      chunkSize: 10 * 1024
+    },
+    // Other options settable:
+    clientNoContextTakeover: true, // Defaults to negotiated value.
+    serverNoContextTakeover: true, // Defaults to negotiated value.
+    serverMaxWindowBits: 10, // Defaults to negotiated value.
+    // Below options specified as default values.
+    concurrencyLimit: 10, // Limits zlib concurrency for perf.
+    threshold: 1024 // Size (in bytes) below which messages
+    // should not be compressed if context takeover is disabled.
+  }
+});
 ```
-http://localhost:3000/api
+
+The client will only use the extension if it is supported and enabled on the
+server. To always disable the extension on the client, set the
+`perMessageDeflate` option to `false`.
+
+```js
+import WebSocket from 'ws';
+
+const ws = new WebSocket('ws://www.host.com/path', {
+  perMessageDeflate: false
+});
 ```
 
-### Endpoints
+## Usage examples
 
-#### 1. Register Vehicle
-```http
-POST /api/vehicles/register
-Content-Type: application/json
+### Sending and receiving text data
 
-{
-  "device_id": "DEVICE001",
-  "name": "Company Van #1",
-  "phone_number": "+1234567890"  // optional
+```js
+import WebSocket from 'ws';
+
+const ws = new WebSocket('ws://www.host.com/path');
+
+ws.on('error', console.error);
+
+ws.on('open', function open() {
+  ws.send('something');
+});
+
+ws.on('message', function message(data) {
+  console.log('received: %s', data);
+});
+```
+
+### Sending binary data
+
+```js
+import WebSocket from 'ws';
+
+const ws = new WebSocket('ws://www.host.com/path');
+
+ws.on('error', console.error);
+
+ws.on('open', function open() {
+  const array = new Float32Array(5);
+
+  for (var i = 0; i < array.length; ++i) {
+    array[i] = i / 2;
+  }
+
+  ws.send(array);
+});
+```
+
+### Simple server
+
+```js
+import { WebSocketServer } from 'ws';
+
+const wss = new WebSocketServer({ port: 8080 });
+
+wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data) {
+    console.log('received: %s', data);
+  });
+
+  ws.send('something');
+});
+```
+
+### External HTTP/S server
+
+```js
+import { createServer } from 'https';
+import { readFileSync } from 'fs';
+import { WebSocketServer } from 'ws';
+
+const server = createServer({
+  cert: readFileSync('/path/to/cert.pem'),
+  key: readFileSync('/path/to/key.pem')
+});
+const wss = new WebSocketServer({ server });
+
+wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data) {
+    console.log('received: %s', data);
+  });
+
+  ws.send('something');
+});
+
+server.listen(8080);
+```
+
+### Multiple servers sharing a single HTTP/S server
+
+```js
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
+
+const server = createServer();
+const wss1 = new WebSocketServer({ noServer: true });
+const wss2 = new WebSocketServer({ noServer: true });
+
+wss1.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
+  // ...
+});
+
+wss2.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
+  // ...
+});
+
+server.on('upgrade', function upgrade(request, socket, head) {
+  const { pathname } = new URL(request.url, 'wss://base.url');
+
+  if (pathname === '/foo') {
+    wss1.handleUpgrade(request, socket, head, function done(ws) {
+      wss1.emit('connection', ws, request);
+    });
+  } else if (pathname === '/bar') {
+    wss2.handleUpgrade(request, socket, head, function done(ws) {
+      wss2.emit('connection', ws, request);
+    });
+  } else {
+    socket.destroy();
+  }
+});
+
+server.listen(8080);
+```
+
+### Client authentication
+
+```js
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
+
+function onSocketError(err) {
+  console.error(err);
 }
+
+const server = createServer();
+const wss = new WebSocketServer({ noServer: true });
+
+wss.on('connection', function connection(ws, request, client) {
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data) {
+    console.log(`Received message ${data} from user ${client}`);
+  });
+});
+
+server.on('upgrade', function upgrade(request, socket, head) {
+  socket.on('error', onSocketError);
+
+  // This function is not defined on purpose. Implement it with your own logic.
+  authenticate(request, function next(err, client) {
+    if (err || !client) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
+    socket.removeListener('error', onSocketError);
+
+    wss.handleUpgrade(request, socket, head, function done(ws) {
+      wss.emit('connection', ws, request, client);
+    });
+  });
+});
+
+server.listen(8080);
 ```
 
-#### 2. Get All Vehicles
-```http
-GET /api/vehicles
+Also see the provided [example][session-parse-example] using `express-session`.
+
+### Server broadcast
+
+A client WebSocket broadcasting to all connected WebSocket clients, including
+itself.
+
+```js
+import WebSocket, { WebSocketServer } from 'ws';
+
+const wss = new WebSocketServer({ port: 8080 });
+
+wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data, isBinary) {
+    wss.clients.forEach(function each(client) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(data, { binary: isBinary });
+      }
+    });
+  });
+});
 ```
 
-#### 3. Update Location
-```http
-POST /api/location
-Content-Type: application/json
+A client WebSocket broadcasting to every other connected WebSocket clients,
+excluding itself.
 
-{
-  "device_id": "DEVICE001",
-  "latitude": 40.7128,
-  "longitude": -74.0060,
-  "speed": 45.5,           // optional, km/h
-  "accuracy": 10,          // optional, meters
-  "altitude": 100,         // optional, meters
-  "heading": 180,          // optional, degrees
-  "battery_level": 85      // optional, percentage
+```js
+import WebSocket, { WebSocketServer } from 'ws';
+
+const wss = new WebSocketServer({ port: 8080 });
+
+wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data, isBinary) {
+    wss.clients.forEach(function each(client) {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(data, { binary: isBinary });
+      }
+    });
+  });
+});
+```
+
+### Round-trip time
+
+```js
+import WebSocket from 'ws';
+
+const ws = new WebSocket('wss://websocket-echo.com/');
+
+ws.on('error', console.error);
+
+ws.on('open', function open() {
+  console.log('connected');
+  ws.send(Date.now());
+});
+
+ws.on('close', function close() {
+  console.log('disconnected');
+});
+
+ws.on('message', function message(data) {
+  console.log(`Round-trip time: ${Date.now() - data} ms`);
+
+  setTimeout(function timeout() {
+    ws.send(Date.now());
+  }, 500);
+});
+```
+
+### Use the Node.js streams API
+
+```js
+import WebSocket, { createWebSocketStream } from 'ws';
+
+const ws = new WebSocket('wss://websocket-echo.com/');
+
+const duplex = createWebSocketStream(ws, { encoding: 'utf8' });
+
+duplex.on('error', console.error);
+
+duplex.pipe(process.stdout);
+process.stdin.pipe(duplex);
+```
+
+### Other examples
+
+For a full example with a browser client communicating with a ws server, see the
+examples folder.
+
+Otherwise, see the test cases.
+
+## FAQ
+
+### How to get the IP address of the client?
+
+The remote IP address can be obtained from the raw socket.
+
+```js
+import { WebSocketServer } from 'ws';
+
+const wss = new WebSocketServer({ port: 8080 });
+
+wss.on('connection', function connection(ws, req) {
+  const ip = req.socket.remoteAddress;
+
+  ws.on('error', console.error);
+});
+```
+
+When the server runs behind a proxy like NGINX, the de-facto standard is to use
+the `X-Forwarded-For` header.
+
+```js
+wss.on('connection', function connection(ws, req) {
+  const ip = req.headers['x-forwarded-for'].split(',')[0].trim();
+
+  ws.on('error', console.error);
+});
+```
+
+### How to detect and close broken connections?
+
+Sometimes, the link between the server and the client can be interrupted in a
+way that keeps both the server and the client unaware of the broken state of the
+connection (e.g. when pulling the cord).
+
+In these cases, ping messages can be used as a means to verify that the remote
+endpoint is still responsive.
+
+```js
+import { WebSocketServer } from 'ws';
+
+function heartbeat() {
+  this.isAlive = true;
 }
+
+const wss = new WebSocketServer({ port: 8080 });
+
+wss.on('connection', function connection(ws) {
+  ws.isAlive = true;
+  ws.on('error', console.error);
+  ws.on('pong', heartbeat);
+});
+
+const interval = setInterval(function ping() {
+  wss.clients.forEach(function each(ws) {
+    if (ws.isAlive === false) return ws.terminate();
+
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000);
+
+wss.on('close', function close() {
+  clearInterval(interval);
+});
 ```
 
-#### 4. Get Latest Location
-```http
-GET /api/location/:device_id/latest
+Pong messages are automatically sent in response to ping messages as required by
+the spec.
+
+Just like the server example above, your clients might as well lose connection
+without knowing it. You might want to add a ping listener on your clients to
+prevent that. A simple implementation would be:
+
+```js
+import WebSocket from 'ws';
+
+function heartbeat() {
+  clearTimeout(this.pingTimeout);
+
+  // Use `WebSocket#terminate()`, which immediately destroys the connection,
+  // instead of `WebSocket#close()`, which waits for the close timer.
+  // Delay should be equal to the interval at which your server
+  // sends out pings plus a conservative assumption of the latency.
+  this.pingTimeout = setTimeout(() => {
+    this.terminate();
+  }, 30000 + 1000);
+}
+
+const client = new WebSocket('wss://websocket-echo.com/');
+
+client.on('error', console.error);
+client.on('open', heartbeat);
+client.on('ping', heartbeat);
+client.on('close', function clear() {
+  clearTimeout(this.pingTimeout);
+});
 ```
 
-#### 5. Get All Latest Locations
-```http
-GET /api/locations/latest
-```
+### How to connect via a proxy?
 
-#### 6. Get Location History
-```http
-GET /api/location/:device_id/history?limit=100&from=2024-01-01&to=2024-01-31
-```
+Use a custom `http.Agent` implementation like [https-proxy-agent][] or
+[socks-proxy-agent][].
 
-#### 7. Delete Vehicle
-```http
-DELETE /api/vehicles/:device_id
-```
+## Changelog
 
-#### 8. Health Check
-```http
-GET /api/health
-```
+We're using the GitHub [releases][changelog] for changelog entries.
 
-## 📊 Database Schema
+## License
 
-### Vehicles Table
-```sql
-CREATE TABLE vehicles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    device_id TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    phone_number TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
+[MIT](LICENSE)
 
-### Locations Table
-```sql
-CREATE TABLE locations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    device_id TEXT NOT NULL,
-    latitude REAL NOT NULL,
-    longitude REAL NOT NULL,
-    speed REAL DEFAULT 0,
-    accuracy REAL,
-    altitude REAL,
-    heading REAL,
-    battery_level INTEGER,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (device_id) REFERENCES vehicles(device_id)
-);
-```
-
-## 🌐 Deploy to Production
-
-### Option 1: VPS/Cloud Server (Recommended)
-
-1. **Get a server** (DigitalOcean, AWS, Heroku, etc.)
-
-2. **Install Node.js** on the server:
-```bash
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
-
-3. **Upload your code**:
-```bash
-scp -r * user@your-server-ip:/home/user/gps-tracker/
-```
-
-4. **Install dependencies and start**:
-```bash
-ssh user@your-server-ip
-cd gps-tracker
-npm install
-npm start
-```
-
-5. **Use PM2 for auto-restart**:
-```bash
-npm install -g pm2
-pm2 start server.js --name gps-tracker
-pm2 startup
-pm2 save
-```
-
-6. **Setup domain and SSL** (optional but recommended):
-   - Point domain to your server IP
-   - Install nginx as reverse proxy
-   - Use Let's Encrypt for free SSL certificate
-
-### Option 2: Heroku (Easy)
-
-1. Create `Procfile`:
-```
-web: node server.js
-```
-
-2. Deploy:
-```bash
-heroku create your-app-name
-git push heroku main
-```
-
-### Option 3: Docker
-
-1. Create `Dockerfile`:
-```dockerfile
-FROM node:18
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
-2. Build and run:
-```bash
-docker build -t gps-tracker .
-docker run -p 3000:3000 gps-tracker
-```
-
-## 🔧 Configuration
-
-### Change Server Port
-
-Edit `server.js`:
-```javascript
-const PORT = process.env.PORT || 3000;
-```
-
-Or set environment variable:
-```bash
-PORT=8080 npm start
-```
-
-### Database Location
-
-The SQLite database file is created at `./gps_tracking.db`
-
-To change location, edit `server.js`:
-```javascript
-const db = new sqlite3.Database('./path/to/your/database.db');
-```
-
-### Update Intervals
-
-In `mobile.html`, default is 5 seconds. Adjust as needed:
-- Lower = More accurate, more battery usage
-- Higher = Less accurate, better battery life
-
-## 🐛 Troubleshooting
-
-### Dashboard shows "Disconnected"
-- Check if server is running
-- Check browser console for errors
-- Verify WebSocket connection at `ws://localhost:3000`
-
-### Mobile app can't send location
-- Make sure you're using your computer's IP, not `localhost`
-- Check if both devices are on the same network
-- Verify location permissions are granted
-- Check if HTTPS is required (some browsers require HTTPS for geolocation)
-
-### Vehicle stays "Offline"
-- Vehicle is offline if no update in last 5 minutes
-- Check if mobile app is still running
-- Verify network connection on phone
-
-### Database errors
-- Delete `gps_tracking.db` and restart server (will recreate fresh database)
-- Check file permissions
-
-## 📱 Creating a Native Android App (Optional)
-
-For a dedicated Android app instead of browser:
-
-1. Use **Cordova** or **React Native**
-2. Package the `mobile.html` as a WebView app
-3. Add background service to keep tracking when app is closed
-4. Submit to Google Play Store
-
-Basic Cordova example:
-```bash
-npm install -g cordova
-cordova create GPSTracker com.yourcompany.gpstracker GPSTracker
-cd GPSTracker
-cordova platform add android
-# Copy mobile.html to www/index.html
-cordova build android
-```
-
-## 📄 License
-
-MIT License - Feel free to use for personal or commercial projects!
-
-## 🤝 Support
-
-For issues or questions:
-1. Check the troubleshooting section
-2. Review the API documentation
-3. Check browser console for errors
-4. Verify server logs
-
-## 🎯 Next Steps
-
-- [ ] Add user authentication
-- [ ] Add geofencing (alerts when vehicle enters/exits areas)
-- [ ] Add route history playback
-- [ ] Add email/SMS alerts
-- [ ] Add multiple user support with permissions
-- [ ] Add export to CSV/PDF
-- [ ] Add analytics dashboard
-- [ ] Add fuel tracking
-- [ ] Add maintenance reminders
-
-Enjoy tracking! 🚗📍
+[`buffer.isutf8()`]: https://nodejs.org/api/buffer.html#bufferisutf8input
+[bufferutil]: https://github.com/websockets/bufferutil
+[changelog]: https://github.com/websockets/ws/releases
+[client-report]: http://websockets.github.io/ws/autobahn/clients/
+[https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
+[node-zlib-bug]: https://github.com/nodejs/node/issues/8871
+[node-zlib-deflaterawdocs]:
+  https://nodejs.org/api/zlib.html#zlib_zlib_createdeflateraw_options
+[permessage-deflate]: https://tools.ietf.org/html/rfc7692
+[server-report]: http://websockets.github.io/ws/autobahn/servers/
+[session-parse-example]: ./examples/express-session-parse
+[socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
+[utf-8-validate]: https://github.com/websockets/utf-8-validate
+[ws-server-options]: ./doc/ws.md#new-websocketserveroptions-callback
